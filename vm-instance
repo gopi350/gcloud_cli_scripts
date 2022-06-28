@@ -1,0 +1,159 @@
+echo
+echo "   #####  #####  #   #  #####  #####  #####       #####  #####  #####  #####  #   #  #####  ####    #####    "
+echo "   #      #   #  ##  #  #   #    #    #   #       #      #   #  #        #    #   #  #   #  #   #   #        "
+echo "   #####  #   #  # # #  #####    #    #####       #####  #   #  #####    #    # # #  #####  ####    #####    "
+echo "       #  #   #  #  ##  #   #    #    #   #           #  #   #  #        #    ## ##  #   #  #   #   #        "
+echo "   #####  #####  #   #  #   #    #    #   #       #####  #####  #        #     # #   #   #  #    #  #####    "
+echo
+echo "   *******************************************************************************************************   "
+echo "   *                                    Developed by  :  CLI team                                        *   "
+echo "   *                                                                                                     *   "
+echo "   *                                    Code          :  VM-instance                                     *   "
+echo "   *                                                                                                     *   "
+echo "   *                                    Code language :  CLI mode                                        *   "
+echo "   *                                                                                                     *   "
+echo "   *                                    Created on    :  10/06/22                                        *   "
+echo "   *                                                                                                     *   "
+echo "   *                                    Version       :  1 (Basic)                                       *   "
+echo "   *******************************************************************************************************   "
+echo
+
+
+############################################### CREATE VM-INSTANCE ####################################################
+
+
+NAME=vm444                                       
+# Give a name to the instance
+
+IMAGE_FAMILY=centos-7                            
+# Use 'gcloud compute images list' to select it
+
+IMAGE_PROJECT=centos-cloud                       
+# Use 'gcloud compute images list' to select it
+
+DISK_SIZE=30GB                                   
+# Use 'gcloud compute disk-types list' to enter boot disk size 
+
+DISK_TYPE=pd-ssd                                 
+# Use 'gcloud compute disk-types list' to enter the disk type
+
+NETWORK=vpc11                                    
+# Use 'gcloud compute networks list' to choose your network
+
+SUBNET=private-subnet1                           
+# Use 'gcloud compute networks subnets list' and choose from the selected vpc network
+
+PREDEFINED_MACHINE_TYPE=                         
+# Assign a value for either PREDEFINED or CUSTOM_MACHINE_TYPE i.e n2d-standard-2 
+#      (or) n1-custom-1-1024
+CUSTOM_MACHINE_TYPE=n1-custom-1-1024            
+# Use 'gcloud compute machine-types list' to choose it in the selected zone
+
+ZONE=us-central1-c                              
+# Use 'gcloud compute zones list' to choose in the preferred region
+
+TAGS=http-server,web                                  
+# Enter tags which are Specified in the firewall rules
+
+INSTANCE=--no-address                            
+# INSTANCE='--no-address' for private instance and 
+# INSTANCE= '         '  (empty) for public instance
+
+############################################### DELETE VM-INSTANCE ####################################################
+
+INSTANCE_NAME=vm142                               
+# Give a vm-instance name that you want to delete
+
+INSTANCE_ZONE=us-central1-c                         
+# Enter a zone name where in which your instance is located
+
+#######################################################################################################################
+
+display_help()
+ {
+
+    echo "Usage: $0 [option]..." 
+    echo
+    echo "   -h, --help             It will display what are all the 'possible options available here' "
+    echo "   -c, --create           It will 'create VM-instance' "
+    echo "   -d, --delete           It will 'delete VM-instamce' "
+    echo "   -e, --edit             It will take you to 'assign values' "
+    echo "   -lv, --list-vm         It will list the 'VM-instances' of a project "
+    echo "   -lm, --list-machines   It will list the 'machine-types' available to create a VM's "
+    echo "   -ld, --list-disks      It will list the 'disk-types' available to create a VM's "
+    echo "   -li, --list-images     It will list the 'Public-Images' availabe to create a VM's "
+    echo
+
+    exit 1
+}
+
+edit()
+{
+read -p " Please confirm, do you want to edit a file '[y/n]': "
+echo
+case "$REPLY" in
+
+"y")sudo vi $0 ;;
+*) exit ;;
+esac
+return 1
+}
+
+
+instance()
+{
+       
+echo NAME: $NAME
+echo IMAGE_FAMILY: $IMAGE_FAMILY
+echo IMAGE_PROJECT: $IMAGE_PROJECT
+echo DISK_SIZE: $DISK_SIZE
+echo DISK_TYPE: $DISK_TYPE
+echo VPC_NETWORK: $NETWORK
+echo SUBNET: $SUBNET
+echo PREDEFINED_MACHINE_TYPE: $PREDEFINED_MACHINE_TYPE 
+echo CUSTOM_MACHINE_TYPE: $CUSTOM_MACHINE_TYPE
+echo INSTANCE: $INSTANCE
+echo ZONE: $ZONE
+echo TAGS: $TAGS
+echo
+read -p " Please confirm the values and press to continue '[y/n]': "
+echo
+case "$REPLY" in
+
+"y") gcloud compute instances create $NAME --image-family=$IMAGE_FAMILY --image-project=$IMAGE_PROJECT --boot-disk-size=$DISK_SIZE --boot-disk-type=$DISK_TYPE --network=$NETWORK --subnet=$SUBNET $INSTANCE --machine-type=$CUSTOM_MACHINE_TYPE --machine-type=$PREDEFINED_MACHINE_TYPE --zone=$ZONE  --tags=$TAGS ;;
+*) exit ;;
+esac
+
+return 1
+}
+
+delete_instance()
+{
+echo INSTANCE_NAME: $INSTANCE_NAME
+echo INSTANCE_ZONE: $INSTANCE_ZONE
+echo
+read -p " Please confirm the values and press to continue '[y/n]': "
+echo
+case "$REPLY" in
+"y")echo " gcloud compute instances delete $INSTANCE_NAME --zone=$INSTANCE_ZONE " ;;
+"*")exit ;;
+esac
+return 1
+}
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -h|--help) display_help; shift ;;
+        -c|--create) instance; shift ;;
+        -e|--edit) edit ; exit ;;
+        -d|--delete)  delete_instance ; shift;;
+        -lv|--list-vm) gcloud compute instances list; exit ;;
+        -lm|--list-machines) gcloud compute machine-types list; exit ;;
+        -ld|--list-disks) gcloud compute disk-types list; exit ;;
+        -li|--list-images) gcloud compute images list; exit ;;
+         # ... (same format for other required arguments)
+        *) echo "Unknown parameter passed: $1" ;;
+    esac
+    shift
+done
+
